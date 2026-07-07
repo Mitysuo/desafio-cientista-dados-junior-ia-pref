@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "desafio-ds-junior"
+version = "0.1.0"
+description = "Desafio Técnico - Cientista de Dados Junior - IA Casa Civil / IplanRio"
+authors = ["Vinicius <viniciusfurukava@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pandas = "^2.1"
+numpy = "^1.24"
+scipy = "^1.11"
+statsmodels = "^0.14"
+scikit-learn = "^1.3"
+matplotlib = "^3.7"
+seaborn = "^0.13"
+plotly = "^5.17"
+jupyter = "^1.0"
+ipykernel = "^6.25"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
