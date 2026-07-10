@@ -1,6 +1,47 @@
 # Desafio Técnico - Cientista de Dados Junior
 ## Time de IA - Casa Civil / IplanRio
 
+## Pré-Requisitos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado
+  - [Download para Windows](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
+  - [Download para Linux](https://docs.docker.com/desktop/install/linux-install/)
+
+- **Windows**: é necessário ter o [WSL 2](https://learn.microsoft.com/pt-br/windows/wsl/install) habilitado (backend padrão do Docker Desktop).
+
+
+## Como Reproduzir a Análise
+
+### 1. Build e subida do container
+
+```bash
+docker compose up --build
+```
+
+### 2. Acessar o Jupyter
+
+Abra `http://localhost:8888` no navegador.
+
+O token de acesso é exibido no terminal na primeira execução (procure por `?token=` na saída do container). Copie o token e cole na página do Jupyter.
+
+### 3. Executar os notebooks
+
+Os notebooks estão na pasta `notebooks/`. Execute na seguinte ordem:
+
+| Ordem | Notebook | Conteúdo |
+|-------|----------|----------|
+| 1 | `01_analise_exploratoria.ipynb` | Análise exploratória dos chamados |
+| 2 | `02_auditoria_modelo_a.ipynb` | Auditoria do modelo em produção |
+| 3 | `03_comparacao_e_recomendacao.ipynb` | Comparação modelo A vs B e recomendação |
+
+### 4. Parar o container
+
+Pressione `Ctrl+C` no terminal onde o container está rodando para interrompê-lo. Depois, para limpar os recursos (remover container e rede):
+
+```bash
+docker compose down
+```
+
 ---
 
 ## Contexto
@@ -12,6 +53,28 @@ Como Cientista de Dados no time de IA, grande parte do seu trabalho será **test
 Este desafio avalia suas habilidades em análise exploratória, estatística aplicada à avaliação de modelos e geração de recomendações acionáveis para gestão pública.
 
 > Os dados deste desafio são totalmente sintéticos: os chamados, rótulos e predições foram gerados artificialmente para simular o comportamento estatístico de um sistema real de classificação — nenhum dado de cidadão foi utilizado.
+
+---
+
+## Abordagem
+
+A análise foi dividida em três etapas, acompanhando os notebooks:
+
+1. **Análise exploratória (Parte 1)**: Comecei investigando a distribuição dos chamados, a qualidade dos textos, padrões por canal/bairro/tempo, e a relação entre termos textuais e categorias. O objetivo foi identificar quais variáveis realmente importam para a classificação — a conclusão foi que há termos relevantes contidos nos textos que podem ser o principal preditor.
+
+2. **Auditoria do Modelo A (Parte 2)**: Calculei acurácia, F1-score com intervalos de confiança via bootstrap. Analisei a matriz de confusão e subgrupos de falha. Identifiquei que a categoria `esgoto_vazamento` concentra os piores erros.
+
+3. **Comparação A vs B (Parte 3)**: Usei teste de McNemar, teste pareado porque as predições são sobre os mesmos chamados. Comparei as métricas globais e por categoria, discutindo trade-offs. A recomendação final é substituir o Modelo A pelo B, com ressalvas e monitoramento para a categoria `poda_arvore`.
+
+---
+
+## Sumário
+Foram analisados 5.000 chamados sintéticos da Central 1746 com o objetivo de auditar o Modelo A que está atualmente em produção, e verificar se o Modelo B possui desempenho suficiente para substituí-lo. Na análise exploratória inicial, observou-se que o texto dos chamados parece ser a principal fonte de informação para a diferenciação das categorias, uma vez que não foram identificados padrões relevantes associados ao tempo, bairro ou canal de atendimento. Em contrapartida, verificou-se a presença de termos específicos fortemente associados a determinadas categorias, sugerindo que o conteúdo textual é altamente discriminativo para a tarefa de classificação. Essa mesma análise também indicou potenciais desafios na distinção da categoria `poda_arvore`, além de possíveis confusões entre as categorias `buraco_via` e `esgoto_vazamento`, em função da sobreposição de termos relevantes nas descrições dos chamados.
+
+
+A auditoria mostrou que o Modelo A tem desempenho geral razoável, com acurácia próxima de 77%. Os erros em geral são homogêneos nas categorias, mas possui a principal fragilidade na categoria Vazamento de Esgoto, com taxa de erro de aproximadamente 42%, o que pode gerar impacto operacional relevante por envolver chamados com possível urgência sanitária e necessidade de encaminhamento especializado.
+
+Recomenda-se substituir o Modelo A pelo Modelo B, pois o novo modelo reduz de forma relevante a quantidade de chamados encaminhados incorretamente. Na base avaliada, o Modelo B aumentou a taxa de acerto de cerca de 77% para 87% e corrigiu mais erros do modelo atual do que criou novos erros. A principal vantagem aparece em categorias importantes como Vazamento de Esgoto, que tinha desempenho fraco no modelo atual. O principal risco da troca está em Poda de Árvore, categoria na qual o Modelo B piora a identificação dos chamados. Por isso, a troca deve ser feita com monitoramento específico dessa categoria, revisão humana temporária para casos suspeitos e acompanhamento das métricas nas primeiras semanas de uso.
 
 ---
 
